@@ -1,0 +1,10 @@
+import
+{{componentNameDefault}}
+from './{{componentNameDefault}}'; import
+{{componentNameSetting}}
+from './{{componentNameSetting}}'; const setting = { color: { displayName: '{{displayName}}',
+matchIf: [ { types: ['string'], widget: 'color', }, ], defaultDataSchema: {
+type: 'string', widget: 'color', }, defaultUiSchema: { 'ui:widget': 'color', },
+type: '{{type}}', cardBody:
+{{componentNameDefault}}, modalBody:
+{{componentNameSetting}}, }, }; export default setting;

@@ -1,0 +1,46 @@
+import React from 'react';
+import _ from 'lodash';
+import { {{componentNameEdit}}, {{componentNameFilter}}, {{componentNameTable}} } from './components';
+
+const {{componentName}} = ({
+  id,
+  value,
+  type = 'edit',
+  schema,
+  required,
+  onChange,
+  onClick = () => {},
+  ...props
+}) => {
+  return (
+    <>
+      {type === 'edit' ? (
+        <{{componentNameEdit}}
+          id={id}
+          schema={schema}
+          required={required}
+          onChange={onChange}
+          props={props}
+          value={value}
+        />
+      ) : null}
+
+      {type === 'filter' ? (
+        <{{componentNameFilter}}
+          value={value}
+          onChange={onChange}
+        />
+      ) : null}
+
+      {type === 'table' && value ? (
+        <{{componentNameTable}}
+          onClick={onClick}
+          value={value}
+          {...props}
+        />
+      ) : null}
+    </>
+  );
+};
+
+export default {{componentName}};

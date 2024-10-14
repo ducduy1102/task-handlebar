@@ -1,0 +1,4 @@
+{{!-- index_component.hbs --}}
+{{#each suffixes}}
+export { default as {{../componentName}}{{this}} } from './{{../componentName}}{{this}}';
+{{/each}}
