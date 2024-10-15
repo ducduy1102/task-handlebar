@@ -2,7 +2,7 @@ import ColorDefault from "./ColorDefault";
 import ColorSetting from "./ColorSetting";
 const setting = {
   color: {
-    displayName: "Color",
+    displayName: "Color Picker",
     matchIf: [{ types: ["string"], widget: "color" }],
     defaultDataSchema: {
       type: "string",
