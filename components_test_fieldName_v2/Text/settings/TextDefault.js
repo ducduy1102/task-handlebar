@@ -1,5 +1,4 @@
-function TextDefault() {
-  return;
-  null;
-}
-export default TextDefault;
+function
+TextDefault() { return
+null; } export default
+TextDefault;

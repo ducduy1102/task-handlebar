@@ -1,11 +1,11 @@
-import React from "react";
-import _ from "lodash";
-import { TextEdit, TextFilter, TextTable } from "./components";
+import React from 'react';
+import _ from 'lodash';
+import { TextEdit, TextFilter, TextTable } from './components';
 
 const Text = ({
   id,
   value,
-  type = "edit",
+  type = 'edit',
   schema,
   required,
   onChange,
@@ -14,7 +14,7 @@ const Text = ({
 }) => {
   return (
     <>
-      {type === "edit" ? (
+      {type === 'edit' ? (
         <TextEdit
           id={id}
           schema={schema}
@@ -25,12 +25,19 @@ const Text = ({
         />
       ) : null}
 
-      {type === "filter" ? (
-        <TextFilter value={value} onChange={onChange} />
+      {type === 'filter' ? (
+        <TextFilter
+          value={value}
+          onChange={onChange}
+        />
       ) : null}
 
-      {type === "table" && value ? (
-        <TextTable onClick={onClick} value={value} {...props} />
+      {type === 'table' && value ? (
+        <TextTable
+          onClick={onClick}
+          value={value}
+          {...props}
+        />
       ) : null}
     </>
   );
