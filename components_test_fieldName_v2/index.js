@@ -17,4 +17,4 @@ export { default as Href } from "./Href";
 export { default as Icon } from "./Icon";
 export { default as MultiImage } from "./MultiImage";
 export { default as Range } from "./Range";
-export { default as Text } from "./Text";
+export { default as Color } from "./Color";

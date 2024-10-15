@@ -19,7 +19,7 @@ import breakSetting from "./Break/settings";
 import iconSetting from "./Icon/settings";
 import multiImage from "./MultiImage/settings";
 import rangeSetting from "./Range/settings";
-import colorSetting from "./Text/settings";
+import colorSetting from "./Color/settings";
 export const DEFAULT_FORM_INPUTS = {
   ...shortAnswerSetting,
   ...longAnswerSetting,

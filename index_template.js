@@ -71,7 +71,19 @@ async function compileTemplate(filePath) {
   }
 }
 
+// remove các file/fodler trước khi tạo mới
+async function clearBaseFolder(baseFolder) {
+  try {
+    // Xóa toàn bộ file và thư mục con trong baseFolder
+    await fs.rm(baseFolder, { recursive: true, force: true });
+    console.log(`Đã xóa toàn bộ nội dung trong thư mục: ${baseFolder}`);
+  } catch (err) {
+    console.error(`Không thể xóa thư mục: ${baseFolder}`, err);
+  }
+}
+
 async function createFiles() {
+  await clearBaseFolder(baseFolder);
   // Lấy giá trị fieldName trực tiếp từ config
   const componentName = config.fieldName;
 

@@ -9,7 +9,7 @@ const Number = dynamic(() => import("./Number"));
 const FileUpload = dynamic(() => import("./File"));
 const TextEditor = dynamic(() => import("./LongAnswer"));
 const MultiFile = dynamic(() => import("./MultiFile"));
-const Text = dynamic(() => import("./Text"));
+const Color = dynamic(() => import("./Color"));
 export const Fields = {
   ShortAnswer: ShortAnswer,
   TextEditor: TextEditor,
@@ -20,6 +20,6 @@ export const Fields = {
   DatePickerComp: DatePickerComp,
   NumberInput: Number,
   FileUpload: FileUpload,
-  Text: Text,
+  Color: Color,
   MultiFile: MultiFile,
 };

@@ -2,7 +2,7 @@ import TextDefault from "./TextDefault";
 import TextSetting from "./TextSetting";
 const setting = {
   color: {
-    displayName: "Text Ne",
+    displayName: "Text",
     matchIf: [{ types: ["string"], widget: "color" }],
     defaultDataSchema: {
       type: "string",
