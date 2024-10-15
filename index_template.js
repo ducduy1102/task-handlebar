@@ -16,114 +16,75 @@ app.use(morgan("combined"));
 
 const config = require("./config_demo_v1.json");
 
-const baseFolder = `${config.folderName}`;
-const fieldNameFolder = path.join(baseFolder, `${config.fieldName}`);
+const baseFolder = config.folderName;
+const fieldNameFolder = path.join(baseFolder, config.fieldName);
 
-// Đổi tên thư mục fieldName cũ thành tên mới
-async function renameFolder(oldFieldFolder, newFieldFolder) {
-  try {
-    if (oldFieldFolder && oldFieldFolder !== newFieldFolder) {
-      // Kiểm tra xem thư mục cũ có tồn tại không
-      await fs.access(oldFieldFolder);
-
-      await fs.rename(oldFieldFolder, newFieldFolder);
-      console.log(
-        `Thư mục fieldName đã được đổi tên từ ${oldFieldFolder} thành ${newFieldFolder}.`
-      );
-    }
-  } catch (err) {
-    if (err.code === "ENOENT") {
-      console.log(`Thư mục không tồn tại: ${oldFieldFolder}, tạo thư mục mới.`);
-      // Tạo mới nếu thư mục không tồn tại
-      await fs.mkdir(newFieldFolder, { recursive: true });
-    } else {
-      console.log(
-        `Không thể đổi tên thư mục từ ${oldFieldFolder} thành ${newFieldFolder}:`,
-        err
-      );
-    }
-  }
-}
-
-// Cập nhật hoặc tạo mới file
+// Helper function for handling file operations
 async function updateFile(filePath, content) {
   const dirPath = path.dirname(filePath);
-
   try {
-    // Tạo thư mục mới nếu chưa tồn tại
     await fs.mkdir(dirPath, { recursive: true });
-
-    // Tạo hoặc ghi đè nội dung file
     await fs.writeFile(filePath, content);
-    console.log(`Nội dung tệp ${filePath} đã được ghi đè/cập nhật.`);
+    console.log(`Updated file: ${filePath}`);
   } catch (err) {
-    console.error(`Không thể tạo hoặc ghi đè tệp ${filePath}:`, err);
+    console.error(`Failed to update file ${filePath}:`, err);
   }
 }
 
-// Đọc file template.hbs và biên dịch
 async function compileTemplate(filePath) {
   try {
     const templateContent = await fs.readFile(filePath, "utf8");
     return handlebars.compile(templateContent);
   } catch (err) {
-    console.error("Lỗi khi đọc template:", err);
+    console.error("Error reading template:", err);
   }
 }
 
-// remove các file/fodler trước khi tạo mới
 async function clearBaseFolder(baseFolder) {
   try {
-    // Xóa toàn bộ file và thư mục con trong baseFolder
     await fs.rm(baseFolder, { recursive: true, force: true });
-    console.log(`Đã xóa toàn bộ nội dung trong thư mục: ${baseFolder}`);
+    console.log(`Cleared folder: ${baseFolder}`);
   } catch (err) {
-    console.error(`Không thể xóa thư mục: ${baseFolder}`, err);
+    console.error(`Failed to clear folder ${baseFolder}:`, err);
   }
+}
+
+async function createFileFromTemplate(templatePath, outputPath, context) {
+  const template = await compileTemplate(templatePath);
+  const content = template(context);
+  await updateFile(outputPath, content);
 }
 
 async function createFiles() {
   await clearBaseFolder(baseFolder);
-  // Lấy giá trị fieldName trực tiếp từ config
   const componentName = config.fieldName;
 
-  // Thay đổi tên thư mục chính thành componentName
   const componentFolder = path.join(baseFolder, componentName);
   const componentsFolder = path.join(componentFolder, "components");
   const settingsFolder = path.join(componentFolder, "settings");
 
-  // Tạo file index.js trong thư mục componentName
-  const mainIndexPath = path.join(componentFolder, "index.js");
-
-  // Biên dịch template cho Color/index.js (từ index_color.hbs)
-  const colorIndexTemplate = await compileTemplate(
-    path.join(__dirname, "views", "index_color.hbs")
+  // Compile and write main index.js file
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "index_color.hbs"),
+    path.join(componentFolder, "index.js"),
+    {
+      componentName: componentName,
+      componentNameEdit: `${componentName}Edit`,
+      componentNameFilter: `${componentName}Filter`,
+      componentNameTable: `${componentName}Table`,
+    }
   );
 
-  const colorIndexContent = colorIndexTemplate({
-    componentName: componentName,
-    componentNameEdit: `${componentName}Edit`,
-    componentNameFilter: `${componentName}Filter`,
-    componentNameTable: `${componentName}Table`,
-  });
-
-  // Tạo file index.js trong thư mục componentName với nội dung đã biên dịch
-  await updateFile(mainIndexPath, colorIndexContent);
-
-  // Tạo file index.js trong thư mục components và settings
-  const componentsIndexPath = path.join(componentsFolder, "index.js");
+  // Components and settings index files
   await updateFile(
-    componentsIndexPath,
-    `// Nội dung của ${componentName}/components/index.js`
+    path.join(componentsFolder, "index.js"),
+    `// ${componentName}/components/index.js`
   );
-
-  const settingsIndexPath = path.join(settingsFolder, "index.js");
   await updateFile(
-    settingsIndexPath,
-    `// Nội dung của ${componentName}/settings/index.js`
+    path.join(settingsFolder, "index.js"),
+    `// ${componentName}/settings/index.js`
   );
 
-  // Biên dịch các template khác và tạo file cho components và settings như trước
   const suffixes = ["Edit", "Filter", "Table"];
   const suffixTemplates = {
     Edit: await compileTemplate(path.join(__dirname, "views", "ColorEdit.hbs")),
@@ -135,14 +96,12 @@ async function createFiles() {
     ),
   };
 
-  // Tạo file cho từng suffix trong thư mục components
   for (const suffix of suffixes) {
-    const template = suffixTemplates[suffix];
     const filePath = path.join(
       componentsFolder,
       `${componentName}${suffix}.js`
     );
-    const content = template({
+    const content = suffixTemplates[suffix]({
       displayName: config.displayName,
       type: config.type,
       fieldName: `${componentName}${suffix}`,
@@ -150,105 +109,74 @@ async function createFiles() {
     await updateFile(filePath, content);
   }
 
-  // Tạo file cho thư mục settings
-  const defaultTemplate = await compileTemplate(
-    path.join(__dirname, "views", "ColorDefault.hbs")
-  );
-  await updateFile(
+  // Settings files
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "ColorDefault.hbs"),
     path.join(settingsFolder, `${componentName}Default.js`),
-    defaultTemplate({ componentName: `${componentName}Default` })
+    { componentName: `${componentName}Default` }
   );
 
-  const settingTemplate = await compileTemplate(
-    path.join(__dirname, "views", "ColorSetting.hbs")
-  );
-  await updateFile(
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "ColorSetting.hbs"),
     path.join(settingsFolder, `${componentName}Setting.js`),
-    settingTemplate({ componentName: `${componentName}Setting` })
+    { componentName: `${componentName}Setting` }
   );
 
-  // Tạo file index.js trong thư mục components
-  const indexTemplate = await compileTemplate(
-    path.join(__dirname, "views", "index_color_components.hbs")
+  // Compile and write index.js files for components and settings
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "index_color_components.hbs"),
+    path.join(componentsFolder, "index.js"),
+    { type: config.type, componentName, suffixes }
   );
 
-  const componentsIndexContent = indexTemplate({
-    type: config.type,
-    componentName: componentName,
-    suffixes: suffixes,
-  });
-
-  // Ghi nội dung vào file index.js trong thư mục components
-  await updateFile(componentsIndexPath, componentsIndexContent);
-
-  // Biên dịch template index_color_setting.hbs và tạo file cho settings
-  const settingIndexTemplate = await compileTemplate(
-    path.join(__dirname, "views", "index_color_setting.hbs")
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "index_color_setting.hbs"),
+    path.join(settingsFolder, "index.js"),
+    {
+      componentNameDefault: `${componentName}Default`,
+      componentNameSetting: `${componentName}Setting`,
+      type: config.type,
+      displayName: config.displayName,
+    }
   );
 
-  const settingsIndexContent = settingIndexTemplate({
-    componentNameDefault: `${componentName}Default`,
-    componentNameSetting: `${componentName}Setting`,
-    type: config.type,
-    displayName: config.displayName,
-  });
-
-  // Ghi nội dung vào file index.js trong thư mục settings
-  await updateFile(settingsIndexPath, settingsIndexContent);
-
-  // Tạo các file chung trong thư mục components
-  const defaultFieldNameTemplate = await compileTemplate(
-    path.join(__dirname, "views", "default.hbs")
-  );
-  await updateFile(
+  // Common files
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "default.hbs"),
     path.join(baseFolder, "default.js"),
-    defaultFieldNameTemplate({
-      componentName: componentName,
-    })
+    { componentName }
   );
 
-  const fieldsTemplate = await compileTemplate(
-    path.join(__dirname, "views", "fields.hbs")
-  );
-  await updateFile(
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "fields.hbs"),
     path.join(baseFolder, "fields.js"),
-    fieldsTemplate({
-      componentName: componentName,
-    })
+    { componentName }
   );
 
-  const indexFieldNameTemplate = await compileTemplate(
-    path.join(__dirname, "views", "index.hbs")
-  );
-  await updateFile(
+  await createFileFromTemplate(
+    path.join(__dirname, "views", "index.hbs"),
     path.join(baseFolder, "index.js"),
-    indexFieldNameTemplate({
-      componentName: componentName,
-    })
+    { componentName }
   );
 }
 
 handlebars.registerHelper("backgroundColor", function (color) {
-  return color ? color : "transparent";
+  return color || "transparent";
 });
 
-// Lắng nghe yêu cầu
+// Routes
 app.get("/handlebar", (req, res) => {
-  res.send("Tạo tệp và thư mục thành công!");
+  res.send("Files and folders created successfully!");
 });
 
-// Khởi chạy ứng dụng
+// Initialize and start server
 async function init() {
   await createFiles();
-  console.log(
-    `Chạy ứng dụng lắng nghe tại: http://localhost:${port} thành công!`
-  );
+  console.log(`Server running at: http://localhost:${port}`);
 }
 
 init();
 
 app.listen(port, () =>
-  console.log(
-    `Chạy ứng dụng lắng nghe tại: http://localhost:${port} thành công!`
-  )
+  console.log(`Server running at: http://localhost:${port}`)
 );

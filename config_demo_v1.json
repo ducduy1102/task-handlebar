@@ -1,6 +1,6 @@
 {
-  "folderName": "components_test_fieldName_v2",
-  "fieldName": "Color",
-  "displayName": "Color",
+  "folderName": "components_test_fieldName_v1",
+  "fieldName": "Text",
+  "displayName": "Text",
   "type": "object"
 }
